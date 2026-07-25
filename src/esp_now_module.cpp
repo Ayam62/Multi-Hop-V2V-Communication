@@ -30,6 +30,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Serial.printf("Sender Heading : %f°\n", incomingPacket.heading);
     Serial.printf("Current Hop    : %d\n", incomingPacket.hopCount);
     Serial.printf("Alert Type Code: %d\n", incomingPacket.msgType);
+    Serial.printf("Alert Message  : %s\n", getAlertDescription(incomingPacket.msgType));
     Serial.println("===========================================");
 }
 

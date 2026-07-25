@@ -22,7 +22,6 @@ void setup() {
 
 // MAKE SURE THIS EXACT BLOCK IS AT THE BOTTOM
 void loop() {
-    delay(5000);
     
     update_switches(); // Call the switch update function
     
@@ -51,6 +50,10 @@ void loop() {
                       simulatedAlert.msgType, 
                       getAlertDescription(simulatedAlert.msgType));
         
-        // sendAlertPacket(simulatedAlert);
+        // if (sendAlertPacket(simulatedAlert)) {
+        //     Serial.println("[Local Trigger] Alert packet broadcast queued.");
+        // } else {
+        //     Serial.println("[Local Trigger] Failed to broadcast alert packet.");
+        // }
     }
 }
