@@ -24,6 +24,7 @@ void loop() {
 
 
     GPSCoordinates currentGPS = checkAndGetGPS();
+    printf("Current GPS Coordinates: Latitude: %f, Longitude: %f\n", currentGPS.latitude, currentGPS.longitude);
 
     AlertPacket simulatedAlert;
     simulatedAlert.nodeID = MY_NODE_ID;
