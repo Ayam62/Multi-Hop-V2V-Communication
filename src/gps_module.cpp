@@ -8,7 +8,7 @@ GPSCoordinates latestData = {0.0, 0.0, false};
 
 void setupGPSModule() {
   // Start the Bluetooth device
-  SerialBT.begin("ESP32_V2V_Node"); 
+  SerialBT.begin("ESP32_V2V_Node_newsan"); 
   Serial.println("Bluetooth is ready! Pair your phone now.");
 }
 
