@@ -48,12 +48,12 @@ void loop() {
         
         Serial.printf("[Local Trigger] Alert Type: %d (%s)\n", 
                       simulatedAlert.msgType, 
-                      getAlertDescription(simulatedAlert.msgType));
+                      getAlertDescription(simulatedAlert.msgType));   
         
-        // if (sendAlertPacket(simulatedAlert)) {
-        //     Serial.println("[Local Trigger] Alert packet broadcast queued.");
-        // } else {
-        //     Serial.println("[Local Trigger] Failed to broadcast alert packet.");
-        // }
+        if (sendAlertPacket(simulatedAlert)) {
+            Serial.println("[Local Trigger] Alert packet broadcast queued.");
+        } else {
+            Serial.println("[Local Trigger] Failed to broadcast alert packet.");
+        }
     }
-}
+}     
