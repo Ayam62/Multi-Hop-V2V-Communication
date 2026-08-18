@@ -1,4 +1,5 @@
 #include "esp_now_module.h"
+#include "directional_awareness.h"
 #include <WiFi.h>
 #include <esp_now.h>
 
@@ -23,11 +24,29 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     AlertPacket incomingPacket;
     memcpy(&incomingPacket, incomingData, sizeof(AlertPacket));
 
+    const float receiverHeading = DirectionalAwareness::getLocalVehicleHeading();
+    const bool relevantAlert = DirectionalAwareness::isDirectionalAlertRelevant(
+        incomingPacket.msgType,
+        incomingPacket.heading,
+        receiverHeading,
+        60.0f
+    );
+
+    if (!relevantAlert) {
+        Serial.printf("Ignoring alert from node #%d: heading mismatch. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
+                      incomingPacket.nodeID,
+                      incomingPacket.heading,
+                      receiverHeading,
+                      getAlertDescription(incomingPacket.msgType));
+        return;
+    }
+
     Serial.println("\n===== [ NEW ESP-NOW PACKET RECEIVED ] =====");
     Serial.printf("Sender Node ID: %d\n", incomingPacket.nodeID);
     Serial.printf("Message Sequence ID: %u\n", incomingPacket.msgID);
     Serial.printf("Coordinates   : Lat: %f, Lng: %f\n", incomingPacket.latitude, incomingPacket.longitude);
     Serial.printf("Sender Heading : %f°\n", incomingPacket.heading);
+    Serial.printf("Receiver Heading: %f°\n", receiverHeading);
     Serial.printf("Current Hop    : %d\n", incomingPacket.hopCount);
     Serial.printf("Alert Type Code: %d\n", incomingPacket.msgType);
     Serial.printf("Alert Message  : %s\n", getAlertDescription(incomingPacket.msgType));

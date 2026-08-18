@@ -7,8 +7,8 @@
 enum AlertType : uint8_t {
     ALERT_EMERGENCY        = 1,
     ALERT_ACCIDENT         = 2,
-    ALERT_TRAFFIC          = 3,
-    ALERT_SLIPPERY_FOGGY   = 4,
+    ALERT_HAZARD           = 3,
+    ALERT_VISIBILITY       = 4,
     ALERT_OBSTACLE         = 5,
     ALERT_HARD_BRAKE       = 6
 };
@@ -18,8 +18,8 @@ inline const char* getAlertDescription(uint8_t msgType) {
     switch (msgType) {
         case ALERT_EMERGENCY:      return "Emergency";
         case ALERT_ACCIDENT:       return "Accident ahead";
-        case ALERT_TRAFFIC:        return "Traffic ahead";
-        case ALERT_SLIPPERY_FOGGY: return "Slippery/Foggy ahead";
+        case ALERT_HAZARD:         return  "Hazard Signal";
+        case ALERT_VISIBILITY:     return "Low Visibility ahead";
         case ALERT_OBSTACLE:       return "Potholes/Obstacle ahead";
         case ALERT_HARD_BRAKE:     return "Hard brake";
         default:                   return "Unknown Alert";
