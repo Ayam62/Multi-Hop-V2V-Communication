@@ -1,5 +1,6 @@
 #include "esp_now_module.h"
 #include "directional_awareness.h"
+#include "gps_module.h"
 #include <WiFi.h>
 #include <esp_now.h>
 
@@ -24,16 +25,23 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     AlertPacket incomingPacket;
     memcpy(&incomingPacket, incomingData, sizeof(AlertPacket));
 
+    
+    const GPSCoordinates receiverLocation = getLatestGPS();
     const float receiverHeading = DirectionalAwareness::getLocalVehicleHeading();
-    const bool relevantAlert = DirectionalAwareness::isDirectionalAlertRelevant(
+    
+    const bool relevantAlert = DirectionalAwareness::isLocationalAlertRelevant(
         incomingPacket.msgType,
-        incomingPacket.heading,
         receiverHeading,
+        incomingPacket.heading,
+        receiverLocation.latitude,
+        receiverLocation.longitude,
+        incomingPacket.latitude,
+        incomingPacket.longitude,
         60.0f
     );
 
     if (!relevantAlert) {
-        Serial.printf("Ignoring alert from node #%d: heading mismatch. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
+        Serial.printf("Ignoring alert from node #%d: location/direction not relevant. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
                       incomingPacket.nodeID,
                       incomingPacket.heading,
                       receiverHeading,

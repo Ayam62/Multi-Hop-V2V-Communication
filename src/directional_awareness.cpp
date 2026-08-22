@@ -6,6 +6,8 @@ namespace DirectionalAwareness {
 static float localVehicleHeading = 0.0f;
 
 void setLocalVehicleHeading(float headingDegrees) {
+    // FIXED: Removed the `fabsf(headingDegrees) < 1e-6f` check. 
+    // A heading of 0.0 (North) is perfectly valid and should not be ignored.
     localVehicleHeading = normalizeHeading(headingDegrees);
 }
 
@@ -49,6 +51,7 @@ float calculateHeadingFromCoordinates(float previousLatitude,
         return 0.0f;
     }
 
+    // Geographic approximation: x=latDelta (North/South), y=lonDelta (East/West)
     float heading = atan2f(lonDelta, latDelta) * 180.0f / PI;
     heading = normalizeHeading(heading);
     return heading;
@@ -112,17 +115,20 @@ bool isDirectionalAlertRelevant(uint8_t msgType,
                                float toleranceDegrees) {
     bool relevant = true;
 
+    // UPDATED: Aligned directional relevance with the new locational rules
     switch (msgType) {
+        case ALERT_EMERGENCY:
+        case ALERT_VISIBILITY:
         case ALERT_OBSTACLE:
         case ALERT_HARD_BRAKE:
+            // These alerts require the sender to be in the same direction (front or rear)
             relevant = isSameDirection(senderHeading, receiverHeading, toleranceDegrees);
             break;
 
-        case ALERT_EMERGENCY:
         case ALERT_ACCIDENT:
         case ALERT_HAZARD:
-        case ALERT_VISIBILITY:
         default:
+            // Receive from all locations/directions
             relevant = true;
             break;
     }
@@ -148,21 +154,22 @@ bool isLocationalAlertRelevant(uint8_t msgType,
         headingToleranceDegrees
     );
 
+    // UPDATED: Applied your exact filtering rules
     switch (msgType) {
         case ALERT_EMERGENCY:
+            // Receive the alert if sender is behind
             return relativePosition == POSITION_REAR;
 
         case ALERT_ACCIDENT:
+        case ALERT_HAZARD:
+            // Receive from all locations
+            return true;
+
+        case ALERT_VISIBILITY:
         case ALERT_OBSTACLE:
         case ALERT_HARD_BRAKE:
-            return relativePosition == POSITION_FRONT || relativePosition == POSITION_OPPOSITE_APPROACHING;
-
-        case ALERT_HAZARD:
-        case ALERT_VISIBILITY:
-            if (fabsf(calculateHeadingDelta(receiverHeading, senderHeading)) <= headingToleranceDegrees) {
-                return relativePosition == POSITION_REAR;
-            }
-            return relativePosition == POSITION_OPPOSITE_APPROACHING;
+            // Receive the alert if sender is in front
+            return relativePosition == POSITION_FRONT;
 
         default:
             return true;

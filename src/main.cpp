@@ -10,11 +10,16 @@ const uint8_t MY_NODE_ID = 1;
 uint32_t messageSequenceCounter = 0;
 
 GPSCoordinates previousGPS = {0.0, 0.0, false};
-GPSCoordinates lastGPS = {0.0, 0.0, false};
 unsigned long lastDirectionCheckMillis = 0;
 
 void updateVehicleHeadingFromGPS() {
     GPSCoordinates currentGPS = checkAndGetGPS();
+
+    Serial.printf("[HEADING DEBUG] currentGPS.newDataAvailable=%d prevGPS.newDataAvailable=%d "
+                  "prev(%.7f,%.7f) cur(%.7f,%.7f)\n",
+                  currentGPS.newDataAvailable, previousGPS.newDataAvailable,
+                  previousGPS.latitude, previousGPS.longitude,
+                  currentGPS.latitude, currentGPS.longitude);
 
     if (!currentGPS.newDataAvailable) {
         return;
@@ -22,13 +27,10 @@ void updateVehicleHeadingFromGPS() {
 
     if (previousGPS.newDataAvailable) {
         float computedHeading = DirectionalAwareness::calculateHeadingFromCoordinates(
-            previousGPS.latitude,
-            previousGPS.longitude,
-            currentGPS.latitude,
-            currentGPS.longitude
+            previousGPS.latitude, previousGPS.longitude,
+            currentGPS.latitude, currentGPS.longitude
         );
         DirectionalAwareness::setLocalVehicleHeading(computedHeading);
-
         Serial.printf("[Direction] Updated vehicle heading to %0.1f° using GPS delta.\n",
                       DirectionalAwareness::getLocalVehicleHeading());
     }
@@ -40,10 +42,13 @@ void setup() {
     Serial.begin(115200);
     delay(1000);
     Serial.printf("Initializing V2V Node #%d...\n", MY_NODE_ID);
+    setupGPSModule(); // Call the GPS module setup function
+    previousGPS = getLatestGPS();
+    updateVehicleHeadingFromGPS();
+
     if (initEspNow()) {
         Serial.println("System initialization complete. Monitoring channel...");
     }
-    setupGPSModule(); // Call the GPS module setup function
     setup_switches(); // Call the switch setup function
 
 }
@@ -51,7 +56,7 @@ void setup() {
 // MAKE SURE THIS EXACT BLOCK IS AT THE BOTTOM
 void loop() {
     unsigned long now = millis();
-    if (now - lastDirectionCheckMillis >= 5000UL) {
+    if (now - lastDirectionCheckMillis >= 3000UL) {
         lastDirectionCheckMillis = now;
         updateVehicleHeadingFromGPS();
     }
@@ -65,10 +70,11 @@ void loop() {
         messageSequenceCounter++;
         Serial.printf("\n[Local Trigger] Generating Alert Serial #%u...\n", messageSequenceCounter);
         Serial.printf("Switch %d pressed! Triggering alert...\n", switch_value);
+        
         delay(500);
         switch_value = 0; // Reset switch value after handling
 
-        GPSCoordinates currentGPS = checkAndGetGPS();
+        GPSCoordinates currentGPS = getLatestGPS();
 
         AlertPacket simulatedAlert;
         simulatedAlert.nodeID = MY_NODE_ID;
@@ -84,11 +90,14 @@ void loop() {
                       getAlertDescription(simulatedAlert.msgType));
         Serial.printf("[Local Trigger] Sending heading: %0.1f°\n",
                       simulatedAlert.heading);
-
-        // if (sendAlertPacket(simulatedAlert)) {
-        //     Serial.println("[Local Trigger] Alert packet broadcast queued.");
-        // } else {
-        //     Serial.println("[Local Trigger] Failed to broadcast alert packet.");
-        // }
+        Serial.printf("Latitude: %.12f, Longitude: %.12f\n",
+                    currentGPS.latitude,
+                    currentGPS.longitude);
+                    
+        if (sendAlertPacket(simulatedAlert)) {
+            Serial.println("[Local Trigger] Alert packet broadcast queued.");
+        } else {
+            Serial.println("[Local Trigger] Failed to broadcast alert packet.");
+        }
     }
 }
