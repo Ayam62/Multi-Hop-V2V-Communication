@@ -48,17 +48,16 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     );
 
     if (!relevantAlert) {
-        Serial.printf("[RELEVANCE] messageId=%u from node #%u not relevant; ignoring and not relaying. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
+        Serial.printf("[RELEVANCE] messageId=%u from node #%u not relevant; ignoring locally but relaying. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
                       incomingPacket.msgID,
                       incomingPacket.nodeID,
                       incomingPacket.heading,
                       receiverHeading,
                       getAlertDescription(incomingPacket.msgType));
-        return;
+    } else {
+        Serial.printf("[RELEVANCE] messageId=%u is relevant; processing alert.\n",
+                      incomingPacket.msgID);
     }
-
-    Serial.printf("[RELEVANCE] messageId=%u is relevant; processing alert.\n",
-                  incomingPacket.msgID);
 
     Serial.println("\n===== [ NEW ESP-NOW PACKET RECEIVED ] =====");
     Serial.printf("Sender Node ID: %d\n", incomingPacket.nodeID);
