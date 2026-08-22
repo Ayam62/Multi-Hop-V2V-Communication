@@ -5,9 +5,9 @@
 #include "alert_type.h"
 #include "switch_input.h"
 #include "directional_awareness.h"
+#include "multihop_relay.h"
 
 const uint8_t MY_NODE_ID = 1; 
-uint32_t messageSequenceCounter = 0;
 
 GPSCoordinates previousGPS = {0.0, 0.0, false};
 unsigned long lastDirectionCheckMillis = 0;
@@ -67,8 +67,7 @@ void loop() {
     uint8_t currentAlertType = switch_value;
 
     if (switch_value != 0) {
-        messageSequenceCounter++;
-        Serial.printf("\n[Local Trigger] Generating Alert Serial #%u...\n", messageSequenceCounter);
+        Serial.println("\n[Local Trigger] Generating new alert...");
         Serial.printf("Switch %d pressed! Triggering alert...\n", switch_value);
         
         delay(500);
@@ -78,7 +77,7 @@ void loop() {
 
         AlertPacket simulatedAlert;
         simulatedAlert.nodeID = MY_NODE_ID;
-        simulatedAlert.msgID = messageSequenceCounter;
+        simulatedAlert.msgID = MultiHopRelay::nextMessageId(MY_NODE_ID);
         simulatedAlert.latitude = currentGPS.latitude;  // Use the latitude from the GPS module
         simulatedAlert.longitude = currentGPS.longitude;  // Use the longitude from the GPS module
         simulatedAlert.heading = DirectionalAwareness::getLocalVehicleHeading();

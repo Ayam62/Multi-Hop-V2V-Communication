@@ -1,6 +1,7 @@
 #include "esp_now_module.h"
 #include "directional_awareness.h"
 #include "gps_module.h"
+#include "multihop_relay.h"
 #include <WiFi.h>
 #include <esp_now.h>
 
@@ -25,6 +26,12 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     AlertPacket incomingPacket;
     memcpy(&incomingPacket, incomingData, sizeof(AlertPacket));
 
+    Serial.printf("[RX] messageId=%u from node #%u, hopCount=%u.\n",
+                  incomingPacket.msgID, incomingPacket.nodeID, incomingPacket.hopCount);
+    if (!MultiHopRelay::rememberMessage(incomingPacket.msgID)) {
+        return;
+    }
+
     
     const GPSCoordinates receiverLocation = getLatestGPS();
     const float receiverHeading = DirectionalAwareness::getLocalVehicleHeading();
@@ -41,13 +48,17 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     );
 
     if (!relevantAlert) {
-        Serial.printf("Ignoring alert from node #%d: location/direction not relevant. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
+        Serial.printf("[RELEVANCE] messageId=%u from node #%u not relevant; ignoring and not relaying. Sender=%0.1f°, Receiver=%0.1f°, Alert=%s\n",
+                      incomingPacket.msgID,
                       incomingPacket.nodeID,
                       incomingPacket.heading,
                       receiverHeading,
                       getAlertDescription(incomingPacket.msgType));
         return;
     }
+
+    Serial.printf("[RELEVANCE] messageId=%u is relevant; processing alert.\n",
+                  incomingPacket.msgID);
 
     Serial.println("\n===== [ NEW ESP-NOW PACKET RECEIVED ] =====");
     Serial.printf("Sender Node ID: %d\n", incomingPacket.nodeID);
@@ -59,6 +70,13 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Serial.printf("Alert Type Code: %d\n", incomingPacket.msgType);
     Serial.printf("Alert Message  : %s\n", getAlertDescription(incomingPacket.msgType));
     Serial.println("===========================================");
+
+    if (MultiHopRelay::shouldRelay(incomingPacket)) {
+        const AlertPacket relayPacket = MultiHopRelay::makeRelayPacket(incomingPacket);
+        if (!sendAlertPacket(relayPacket)) {
+            Serial.printf("[RELAY] Failed to broadcast messageId=%u.\n", relayPacket.msgID);
+        }
+    }
 }
 
 bool initEspNow() {
