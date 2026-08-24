@@ -2,6 +2,7 @@
 #include "esp_now_module.h"
 #include "packet_structure.h"
 #include "gps_module.h"
+#include "LED.h"
 #include "alert_type.h"
 #include "switch_input.h"
 #include "directional_awareness.h"
@@ -43,6 +44,7 @@ void setup() {
     delay(1000);
     Serial.printf("Initializing V2V Node #%d...\n", MY_NODE_ID);
     setupGPSModule(); // Call the GPS module setup function
+    setupLEDs();
     previousGPS = getLatestGPS();
     updateVehicleHeadingFromGPS();
 
@@ -83,6 +85,7 @@ void loop() {
         simulatedAlert.heading = DirectionalAwareness::getLocalVehicleHeading();
         simulatedAlert.hopCount = 0;
         simulatedAlert.msgType = currentAlertType;  // Set msgType based on switch value (1-6)
+        displayAlertLED(simulatedAlert.msgType);
 
         Serial.printf("[Local Trigger] Alert Type: %d (%s)\n",
                       simulatedAlert.msgType,

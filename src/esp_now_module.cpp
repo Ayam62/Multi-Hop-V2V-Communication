@@ -1,6 +1,7 @@
 #include "esp_now_module.h"
 #include "directional_awareness.h"
 #include "gps_module.h"
+#include "LED.h"
 #include "multihop_relay.h"
 #include <WiFi.h>
 #include <esp_now.h>
@@ -69,6 +70,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Serial.printf("Alert Type Code: %d\n", incomingPacket.msgType);
     Serial.printf("Alert Message  : %s\n", getAlertDescription(incomingPacket.msgType));
     Serial.println("===========================================");
+
+    displayAlertLED(incomingPacket.msgType);
 
     if (MultiHopRelay::shouldRelay(incomingPacket)) {
         const AlertPacket relayPacket = MultiHopRelay::makeRelayPacket(incomingPacket);
