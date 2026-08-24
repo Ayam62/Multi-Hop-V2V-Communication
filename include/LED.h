@@ -5,5 +5,6 @@
 
 void setupLEDs();
 void displayAlertLED(uint8_t alertType);
+void updateLEDs();
 
 #endif // LED_H

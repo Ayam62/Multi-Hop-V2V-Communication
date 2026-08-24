@@ -58,6 +58,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     } else {
         Serial.printf("[RELEVANCE] messageId=%u is relevant; processing alert.\n",
                       incomingPacket.msgID);
+        displayAlertLED(incomingPacket.msgType);
     }
 
     Serial.println("\n===== [ NEW ESP-NOW PACKET RECEIVED ] =====");
@@ -70,8 +71,6 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     Serial.printf("Alert Type Code: %d\n", incomingPacket.msgType);
     Serial.printf("Alert Message  : %s\n", getAlertDescription(incomingPacket.msgType));
     Serial.println("===========================================");
-
-    displayAlertLED(incomingPacket.msgType);
 
     if (MultiHopRelay::shouldRelay(incomingPacket)) {
         const AlertPacket relayPacket = MultiHopRelay::makeRelayPacket(incomingPacket);

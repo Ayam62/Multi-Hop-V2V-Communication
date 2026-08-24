@@ -57,6 +57,8 @@ void setup() {
 
 // MAKE SURE THIS EXACT BLOCK IS AT THE BOTTOM
 void loop() {
+    updateLEDs();
+
     unsigned long now = millis();
     if (now - lastDirectionCheckMillis >= 3000UL) {
         lastDirectionCheckMillis = now;
@@ -85,7 +87,6 @@ void loop() {
         simulatedAlert.heading = DirectionalAwareness::getLocalVehicleHeading();
         simulatedAlert.hopCount = 0;
         simulatedAlert.msgType = currentAlertType;  // Set msgType based on switch value (1-6)
-        displayAlertLED(simulatedAlert.msgType);
 
         Serial.printf("[Local Trigger] Alert Type: %d (%s)\n",
                       simulatedAlert.msgType,
@@ -103,3 +104,16 @@ void loop() {
         }
     }
 }
+
+// int leds[] = {4, 2, 5, 18, 19, 21};
+
+// void setup() {
+//   for (int i = 0; i < 6; i++) {
+//     pinMode(leds[i], OUTPUT);
+//     digitalWrite(leds[i], HIGH);
+//   }
+// }
+
+// void loop() {
+//   // LEDs remain ON
+// }
