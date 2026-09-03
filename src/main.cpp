@@ -2,6 +2,7 @@
 #include "esp_now_module.h"
 #include "packet_structure.h"
 #include "gps_module.h"
+#include "LED.h"
 #include "alert_type.h"
 #include "switch_input.h"
 #include "directional_awareness.h"
@@ -43,6 +44,7 @@ void setup() {
     delay(1000);
     Serial.printf("Initializing V2V Node #%d...\n", MY_NODE_ID);
     setupGPSModule(); // Call the GPS module setup function
+    setupLEDs();
     previousGPS = getLatestGPS();
     updateVehicleHeadingFromGPS();
 
@@ -55,6 +57,8 @@ void setup() {
 
 // MAKE SURE THIS EXACT BLOCK IS AT THE BOTTOM
 void loop() {
+    updateLEDs();
+
     unsigned long now = millis();
     if (now - lastDirectionCheckMillis >= 3000UL) {
         lastDirectionCheckMillis = now;
@@ -100,3 +104,4 @@ void loop() {
         }
     }
 }
+

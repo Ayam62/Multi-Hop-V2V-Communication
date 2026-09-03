@@ -1,6 +1,7 @@
 #include "esp_now_module.h"
 #include "directional_awareness.h"
 #include "gps_module.h"
+#include "LED.h"
 #include "multihop_relay.h"
 #include <WiFi.h>
 #include <esp_now.h>
@@ -57,6 +58,7 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
     } else {
         Serial.printf("[RELEVANCE] messageId=%u is relevant; processing alert.\n",
                       incomingPacket.msgID);
+        displayAlertLED(incomingPacket.msgType);
     }
 
     Serial.println("\n===== [ NEW ESP-NOW PACKET RECEIVED ] =====");
