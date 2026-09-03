@@ -105,15 +105,3 @@ void loop() {
     }
 }
 
-// int leds[] = {4, 2, 5, 18, 19, 21};
-
-// void setup() {
-//   for (int i = 0; i < 6; i++) {
-//     pinMode(leds[i], OUTPUT);
-//     digitalWrite(leds[i], HIGH);
-//   }
-// }
-
-// void loop() {
-//   // LEDs remain ON
-// }

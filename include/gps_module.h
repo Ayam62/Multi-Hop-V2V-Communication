@@ -10,7 +10,7 @@ struct GPSCoordinates {
   bool newDataAvailable; // A flag to tell main if the data just updated
 };
 
-// Replay the next coordinate from /location_data.txt when its interval expires.
+// Read newline-terminated latitude,longitude values from the phone over Bluetooth.
 void setupGPSModule();
 GPSCoordinates checkAndGetGPS();
 GPSCoordinates getLatestGPS();
